@@ -133,10 +133,18 @@ def curate_datasets(order_by, ascending, n_datasets):
     Select samples for adversarially ordered natural datasets.
 
     args:
-        sample_adv_order (list) : list of adversarially ordered sample indices
+        order_by (ndarray) : an n-dimensional array of CI lower bounds or label confidences
+        ascending (bool) : flag for sort in ascending order
         n_datasets (int) : number of datasets
 
     return:
         dataset_idxs (list) : list of lists containing sample indicies for each adversarial datasets
     '''
-    return
+    # adversarially order the samples
+    adversarial_order = np.argsort(order_by if ascending else -1 * order_by)
+    # take the top-p sample subsets from the ordering
+    top_p = np.linspace(0, 1, num=n_datasets+1)
+    n_top_p = np.round(top_p * adversarial_order.shape[0]).astype(int)[1:]
+    n_top_p[-1] = -1        # let the last dataset contain all samples
+    idxs_per_dataset = [adversarial_order[:n] for n in n_top_p]
+    return idxs_per_dataset
