@@ -23,7 +23,7 @@ To create and run a container from this image `nad`, use the following command:
 docker run -it nad
 ```
 
-Prior to running the code, decompress the data using the following commands:
+Prior to running the code, decompress the data `data.tar.gz` in the `data` directory using the following commands:
 
 ```
 cd data
