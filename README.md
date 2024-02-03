@@ -8,7 +8,7 @@ Clone this repository.
 
 ```
 git clone https://github.com/sfpugh/Naturally-Adversarial-Datasets
-cd Naturally_Adversarial_Datasets
+cd Naturally-Adversarial-Datasets
 ```
 
 The paper results were generated on a Linux machine with Ubuntu 20.04 and Python 3.8. We provide a Dockerfile to construct an image to this specification. To build the docker image, use the following command:
