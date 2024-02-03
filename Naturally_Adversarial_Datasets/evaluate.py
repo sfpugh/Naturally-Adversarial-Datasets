@@ -3,6 +3,8 @@ import numpy as np
 from math import sqrt
 from scipy.stats import spearmanr
 
+from Naturally_Adversarial_Datasets.utils import abstaining_argmax
+
 def plot(accs, ints, ax=None, label=None, savefile=None):
     if ax is None:
         fig, ax = plt.subplots(figsize=(5,5))
@@ -21,8 +23,8 @@ def plot(accs, ints, ax=None, label=None, savefile=None):
 
     return fig, ax
 
-def evaluate(dataset_idxs, y_true, y_prob, Z):
-    y_pred = (np.max(y_prob, 1) >= 0.5).astype(int)
+def evaluate(dataset_idxs, y_true, y_prob, Z, default_pred):
+    y_pred = abstaining_argmax(y_prob, default=default_pred)
 
     accs = [(y_true[idxs] == y_pred[idxs]).sum() / idxs.shape[0] for idxs in dataset_idxs]
     ints = [Z * sqrt((accs[i] * (1 - accs[i])) / dataset_idxs[i].shape[0]) for i in range(len(dataset_idxs))]

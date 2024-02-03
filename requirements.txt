@@ -1,2 +1,4 @@
 snorkel==0.9.7
 statsmodels==0.14.0
+pandas==1.4.4
+matplotlib==3.6

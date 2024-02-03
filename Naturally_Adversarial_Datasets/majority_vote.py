@@ -10,7 +10,7 @@ class MajorityVote:
     def __get_logits__(self, l):
         return np.bincount(l[l != ABSTAIN], minlength=self.cardinality)
         
-    def predict_proba(self, L, method='softmax'):
+    def predict_proba(self, L, method='softmax', seed=None):
         logits = np.apply_along_axis(self.__get_logits__, 1, L)
         
         if method == 'softmax':
