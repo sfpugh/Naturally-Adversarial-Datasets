@@ -8,7 +8,7 @@ Clone this repository.
 
 ```
 git clone https://github.com/sfpugh/Naturally-Adversarial-Datasets
-cd Naturally_Adversarial_Datasets
+cd Naturally-Adversarial-Datasets
 ```
 
 The paper results were generated on a Linux machine with Ubuntu 20.04 and Python 3.8. We provide a Dockerfile to construct an image to this specification. To build the docker image, use the following command:
@@ -23,7 +23,7 @@ To create and run a container from this image `nad`, use the following command:
 docker run -it nad
 ```
 
-Decompress the data:
+Prior to running the code, decompress the data `data.tar.gz` in the `data` directory using the following commands:
 
 ```
 cd data
