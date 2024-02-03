@@ -17,5 +17,5 @@ for ((i = 0; i < ${#datasets[@]}; i++)); do
     done
 done
 
-echo -e "Case Study & Probabilistic Labeler (PL) & PL Conf with all LFs & PL Conf with indep LFs & CI LB with all LFs & Our Approach"
+echo -e "Case Study & Probabilistic Labeler (PL) & PL Conf with all LFs & PL Conf with indep LFs & CI LB with all LFs & Our Approach \\\\\\"
 echo -e "$results"
