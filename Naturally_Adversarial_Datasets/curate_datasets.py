@@ -1,21 +1,48 @@
+import argparse
 import networkx as nx
 import numpy as np
+import pickle
 import statsmodels.stats.proportion as sm
 # Probabilistic labeling models
-from .majority_vote import MajorityVote
+from majority_vote import MajorityVote
 from snorkel.labeling.model.label_model import LabelModel as Snorkel
 
-from .utils import *
+from data import load_data
+from utils import convert_to_binary
+from evaluate import evaluate, plot
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument('--dataset', type=str, help='Dataset')
+parser.add_argument('--dataset_dir', type=str, default='../data', help='Dataset')
+
+# Method parameters
+parser.add_argument('--pl', type=str, help='Probabilistic labeler (\'majorityvote\' or \'snorkel\')')
+parser.add_argument('--delta', type=float, default=0.5, help='Correlation threshold alpha')
+parser.add_argument('--alpha', type=float, default=0.05, help='Confidence interval significance level alpha')
+parser.add_argument('--ascending', action='store_true', help='Flag to save dataset indexes')
+parser.add_argument('--N', type=int, default=10, help='Number of datasets')
+parser.add_argument('--seed', type=int, default=42, help='Random seed')
+
+parser.add_argument('--skip_lf_pruning', action='store_true', help='Flag to disable lf pruning step')
+parser.add_argument('--skip_ci', action='store_true', help='Flag to disable confidence interval step')
+
+parser.add_argument('--save', action='store_true', help='Flag to save dataset indexes')
+parser.add_argument('--savefile', type=str, default='dataset_indexes.pkl', help='Filename to save dataset indexes')
+parser.add_argument('--evaluate', action='store_true', help='Flag to evaluate')
+parser.add_argument('--z', type=float, default=1.64, help='Number of standard deviations for evaluation accuracy confidence intervals')
+parser.add_argument('--plot', action='store_true', help='Flag to plot')
 
 ABSTAIN         = -1
+CARDINALITY     = 2
 
-def lf_pruning(L, cor_thresh):
+def lf_pruning(L, delta):
     '''
     (Step 1) Select independent labeling functions.
 
     args:
         L (ndarray) : an [n,p] matrix with values in  {-1,0,1,…,k-1}
-        cor_thresh (float) : correlation threshold
+        delta (float) : correlation threshold
 
     return:
         lfs_to_drop (list) : list of dependent LFs indicies
@@ -30,7 +57,7 @@ def lf_pruning(L, cor_thresh):
     # Construct dependency graph
     dep_graph = nx.Graph()
     dep_graph.add_nodes_from(lfs)
-    dep_graph.add_edges_from(np.column_stack(np.nonzero(cor_mtx > cor_thresh)))
+    dep_graph.add_edges_from(np.column_stack(np.nonzero(cor_mtx > delta)))
     
     # Rank LFs by maximal cliques and coverage
     max_cliques = list(nx.find_cliques(dep_graph))
@@ -53,7 +80,7 @@ def lf_pruning(L, cor_thresh):
                 
     return lfs_to_drop
 
-def probabilistic_labeling(labeler, L_train, L_test, cardinality, return_weights=False, seed=42):
+def probabilistic_labeling(labeler, L_train, L_test, cardinality, return_weights=False, seed=None):
     '''
     (Step 2) Probabilistically label the test data.
 
@@ -148,3 +175,37 @@ def curate_datasets(order_by, ascending, n_datasets):
     n_top_p[-1] = -1        # let the last dataset contain all samples
     idxs_per_dataset = [adversarial_order[:n] for n in n_top_p]
     return idxs_per_dataset
+
+def main(args):
+    L_train, L_test, y_test = load_data(args.dataset, args.dataset_dir)
+
+    # Step 1: LF pruning
+    if not args.skip_lf_pruning:
+        lfs_to_drop = lf_pruning(L_train, args.delta)
+        L_train = np.delete(L_train, lfs_to_drop, axis=1)
+        L_test = np.delete(L_test, lfs_to_drop, axis=1)
+
+    # Step 2: Probabilistic labeling
+    y_prob, lf_weights = probabilistic_labeling(args.pl, L_train, L_test, CARDINALITY, return_weights=True, seed=args.seed)
+
+    # Step 3: Confidence intervals
+    if args.skip_ci:
+        order_by = np.max(y_prob, axis=1)
+    else:
+        y_ints = confidence_intervals(L_test, y_prob, lf_weights, args.alpha, CARDINALITY)
+        order_by = y_ints[:,0]
+
+    # Step 4: Adversarial dataset design
+    idxs_per_dataset = curate_datasets(order_by, args.ascending, args.N)
+
+    if args.save:
+        with open(args.savefile, "wb") as fp:
+            pickle.dump(idxs_per_dataset, fp)
+
+    if args.evaluate:
+        accs, ints, rho, pvalue = evaluate(idxs_per_dataset, y_test, y_prob, args.z)
+        print("%.3f (%.2f)" % (rho, pvalue))
+
+if __name__ == '__main__':
+    args = parser.parse_args()
+    main(args)

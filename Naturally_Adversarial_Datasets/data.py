@@ -22,8 +22,8 @@ def load_data(dataset, data_dir_path):
             L_train.append(L)
 
             # if have ground truth then append to test data
-            if os.path.exists(os.path.join(data_dir_path, '%s_y_%s.npy' % (dataset, g))):
-                y = np.load(os.path.join(data_dir_path, '%s_y_%s.npy' % (dataset, g)))
+            if os.path.exists(os.path.join(data_dir_path, '%s_Y_%s.npy' % (dataset, g))):
+                y = np.load(os.path.join(data_dir_path, '%s_Y_%s.npy' % (dataset, g)))
                 L_test.append(L)
                 y_test.append(y)
 
