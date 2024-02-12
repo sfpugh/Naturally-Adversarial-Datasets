@@ -12,7 +12,7 @@ for ((i = 0; i < ${#datasets[@]}; i++)); do
         r1=$(python main.py --dataset ${datasets[i]} --default_pred ${default_preds[i]} --pl $pl --skip_lf_pruning --skip_ci --evaluate)
         r2=$(python main.py --dataset ${datasets[i]} --default_pred ${default_preds[i]} --pl $pl --skip_ci --evaluate)
         r3=$(python main.py --dataset ${datasets[i]} --default_pred ${default_preds[i]} --pl $pl --skip_lf_pruning --evaluate)
-        r4=$(python main.py --dataset ${datasets[i]} --default_pred ${default_preds[i]} --pl $pl --evaluate --save --savefile ./results/${datasets[i]}_dataset_indexes.pkl)
+        r4=$(python main.py --dataset ${datasets[i]} --default_pred ${default_preds[i]} --pl $pl --evaluate --save --idxs_file ./results/${datasets[i]}_dataset_indexes.pkl --y_prob_file ./results/${datasets[i]}_y_prob.npy)
         results="$results${datasets[i]} & $pl & $r1 & $r2 & $r3 & $r4 \\\\\\ \n"
     done
 done

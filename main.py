@@ -25,14 +25,11 @@ parser.add_argument('--skip_lf_pruning', action='store_true', help='Flag to disa
 parser.add_argument('--skip_ci', action='store_true', help='Flag to disable confidence interval step')
 
 parser.add_argument('--save', action='store_true', help='Flag to save dataset indexes')
-parser.add_argument('--savefile', type=str, default='dataset_indexes.pkl', help='Filename to save dataset indexes')
+parser.add_argument('--idxs_file', type=str, default='dataset_indexes.pkl', help='Filename to save dataset indexes')
+parser.add_argument('--y_prob_file', type=str, default='y_prob.npy', help='Filename to save dataset indexes')
 parser.add_argument('--evaluate', action='store_true', help='Flag to evaluate')
 parser.add_argument('--z', type=float, default=1.64, help='Number of standard deviations for evaluation accuracy confidence intervals')
 parser.add_argument('--plot', action='store_true', help='Flag to plot')
-
-def abstaining_argmax(X, default=-1):
-    f = lambda x: np.argmax(x) if np.unique(x).shape[0] > 1 else default
-    return np.apply_along_axis(f, 1, X)
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -59,8 +56,10 @@ if __name__ == '__main__':
     idxs_per_dataset = curate_datasets(order_by, args.ascending, args.N)
 
     if args.save:
-        with open(args.savefile, "wb") as fp:
+        with open(args.idxs_file, "wb") as fp:
             pickle.dump(idxs_per_dataset, fp)
+        
+        np.save(args.y_prob_file, y_prob)
 
     if args.evaluate:
         accs, ints, rho, pvalue = evaluate(idxs_per_dataset, y_test, y_prob, args.z, args.default_pred)
