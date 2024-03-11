@@ -1,5 +1,6 @@
 import argparse
 import numpy as np
+import os
 import pickle
 
 from Naturally_Adversarial_Datasets.data import load_data
@@ -56,6 +57,9 @@ if __name__ == '__main__':
     idxs_per_dataset = curate_datasets(order_by, args.ascending, args.N)
 
     if args.save:
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(args.idxs_file), exist_ok=True)
+
         with open(args.idxs_file, "wb") as fp:
             pickle.dump(idxs_per_dataset, fp)
         
